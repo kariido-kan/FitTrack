@@ -371,6 +371,15 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
 .tip-body{font-size:13.5px;color:var(--text2);line-height:1.55}
 .tip-body b{color:var(--text);font-weight:600}
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:3000}
+.ex-demo-img{position:relative;width:100%;max-width:300px;aspect-ratio:3/2;border-radius:var(--r-sm);overflow:hidden;background:#fff;margin:2px 0 10px}
+.ex-demo-img .frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff}
+.ex-demo-img .frame-b{animation:demoflip 1.6s steps(1,end) infinite}
+@keyframes demoflip{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+.ex-demo-cap{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:600;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:10px;font-family:'Outfit',sans-serif;z-index:2}
+.ex-what{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:8px}
+.ex-what b{color:var(--text)}
+.ex-cue-text{font-size:13px;color:var(--text2);line-height:1.6}
+.ex-cue-text b{color:var(--text)}
 #page-more .tool-btn{margin-bottom:6px;border:1px solid var(--border);background:var(--bg1)}
 /* The base .mobile-nav{display:none} rule above appears after the main media query,
    so re-assert the bottom nav on small screens here (later source order wins). */
@@ -732,6 +741,32 @@ const BADGES=[
   {id:'protein7',icon:'💪',name:'Protein king',desc:'Hit protein 7 days'},
   {id:'complete',icon:'🥇',name:'Champion',desc:'Finish all 12 weeks'}
 ];
+// Beginner demo images (public-domain free-exercise-db) + plain-English descriptions, keyed by exercise name
+const EXMETA={
+  'Bench press':{img:'bench-press',what:'Lie on a flat bench and push a barbell up from your chest until your arms are straight. Builds the chest, front shoulders and triceps.'},
+  'Overhead press':{img:'overhead-press',what:'Stand tall and press a barbell from your shoulders straight up overhead. Builds the shoulders and triceps.'},
+  'Cable row':{img:'cable-row',what:'Sit at a cable machine and pull the handle into your stomach, squeezing your shoulder blades together. Builds the mid-back — great for posture.'},
+  'Lat pulldown':{img:'lat-pulldown',what:'Sit and pull a wide bar down to your upper chest. Builds the lats, the muscles that give your back its width.'},
+  'Lateral raises':{img:'lateral-raises',what:'Stand and lift dumbbells out to your sides up to shoulder height. Builds the side of the shoulders for width.'},
+  'Tricep pushdown':{img:'tricep-pushdown',what:'Stand at a cable and push the bar or rope down by straightening your arms. Builds the back of the upper arm (triceps).'},
+  'Squat':{img:'squat',what:'With a barbell resting on your upper back, bend your knees and hips to sit down, then stand back up. Trains the whole lower body.'},
+  'Leg press':{img:'leg-press',what:'Sit in the machine and push the platform away with your feet until your legs are nearly straight. Builds the thighs and glutes.'},
+  'Romanian deadlift':{img:'romanian-deadlift',what:'Hold a barbell and push your hips back, lowering the bar down your legs with a flat back, then stand up. Builds hamstrings and glutes.'},
+  'Leg curl':{img:'leg-curl',what:'Lie on the machine and curl the pad toward you using the back of your thighs. Isolates the hamstrings.'},
+  'Calf raises':{img:'calf-raises',what:'Stand and push up onto the balls of your feet, then lower slowly. Builds the calf muscles.'},
+  'Plank':{img:'plank',what:'Hold a straight-body position on your forearms and toes, keeping your core tight. Builds core stability for better posture.'},
+  'Barbell row':{img:'barbell-row',what:'Bend forward at the hips and pull a barbell up to your belly, squeezing your shoulder blades. Builds the whole back.'},
+  'Incline DB press':{img:'incline-db-press',what:'On a bench set to an incline, press two dumbbells up from your upper chest. Targets the upper chest and shoulders.'},
+  'Seated cable row':{img:'seated-cable-row',what:'Sit and pull a cable handle to your stomach while keeping a tall chest. Builds the mid-back — another great posture move.'},
+  'DB shoulder press':{img:'db-shoulder-press',what:'Press two dumbbells from shoulder height straight up overhead. Builds the shoulders.'},
+  'Face pulls':{img:'face-pulls',what:'Pull a rope at face height toward your forehead with your elbows high. Strengthens the rear shoulders — the top fix for rounded posture.'},
+  'Bicep curl':{img:'bicep-curl',what:'Hold dumbbells and curl them up toward your shoulders by bending your elbows. Builds the biceps at the front of the upper arm.'},
+  'Deadlift':{img:'deadlift',what:'Lift a loaded barbell from the floor to standing by driving through your legs and hips with a flat back. A full-body strength builder.'},
+  'Bulgarian split squat':{img:'bulgarian-split-squat',what:'With your back foot resting on a bench, lower into a one-leg squat, then drive back up. Builds each leg and the glutes.'},
+  'Leg extension':{img:'leg-extension',what:'Sit in the machine and straighten your legs against the pad. Isolates the front of the thighs (quads).'},
+  'Ab wheel / crunch':{img:'ab-crunch',what:'Curl your upper body toward your knees (or roll a wheel out and back in) to squeeze your abs. Builds the core.'},
+  'Hip thrust':{img:'hip-thrust',what:'Rest your upper back on a bench, drive a barbell up with your hips and squeeze your glutes at the top. Builds the glutes.'}
+};
 let cw=1,timerInterval=null,timerTotal=90,timerLeft=90,timerRunning=false;
 let nd=0,plateBar=20,_weeksDoneMark=null;const openDays=new Set();
 const MACRO_TARGET={k:2100,p:166,c:210,f:60};
@@ -828,6 +863,7 @@ function renderTraining(){
       const pr=gs('ft3_pr_'+ex.name,null);
       const isPR=pr&&sw&&parseFloat(sw)>=parseFloat(pr);
       const reps=repsOf(ex.sets);
+      const meta=EXMETA[ex.name]||null;
       const row=document.createElement('div');row.className='ex-row';
       row.innerHTML=`<div class="cb${checked?' checked':''}" onclick="toggleEx(${di},${ei})"></div>
         <div class="ex-main">
@@ -841,9 +877,9 @@ function renderTraining(){
             ${day.type==='train'&&ex.sets?`<input class="weight-input" type="number" placeholder="kg" step="0.5" min="0" value="${sw}" onchange="saveWeight(${di},${ei},this.value,'${ex.name.replace(/'/g,"\\'")}')">`:'' }
             ${lw?`<span class="last-weight">Last: <span>${lw}kg</span></span>`:''}
             ${sw&&reps?`<span class="est1rm" title="Estimated 1-rep max (Epley)">≈${Math.round(parseFloat(sw)*(1+reps/30))}kg 1RM</span>`:''}
-            ${ex.cue?`<button class="form-cue-btn" onclick="toggleCue(${di},${ei},event)">▸ Form cue</button>`:''}
+            ${(ex.cue||meta)?`<button class="form-cue-btn" onclick="toggleCue(${di},${ei},event)">▸ How to</button>`:''}
           </div>
-          ${ex.cue?`<div class="form-cue" id="cue-${di}-${ei}">${ex.cue}</div>`:''}
+          ${(ex.cue||meta)?`<div class="form-cue" id="cue-${di}-${ei}">${meta&&meta.img?`<div class="ex-demo-img"><img class="frame frame-a" crossorigin="anonymous" loading="lazy" src="exercises/${meta.img}/0.jpg" alt="${ex.name} start position"><img class="frame frame-b" crossorigin="anonymous" loading="lazy" src="exercises/${meta.img}/1.jpg" alt="${ex.name} finish position"><span class="ex-demo-cap">▶ start ⇄ finish</span></div>`:''}${meta&&meta.what?`<div class="ex-what"><b>What it is:</b> ${meta.what}</div>`:''}${ex.cue?`<div class="ex-cue-text"><b>Form:</b> ${ex.cue}</div>`:''}</div>`:''}
         </div>
         <div class="ex-right">${day.type==='train'&&ex.sets?`<button class="timer-btn" onclick="openTimer('${ex.name.replace(/'/g,"\\'")}',event)">⏱ Rest</button>`:''}</div>`;
       body.appendChild(row);
